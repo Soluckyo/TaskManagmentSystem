@@ -3,9 +3,11 @@ spring:
     hibernate:
       ddl-auto: update
 
+
     database: postgresql
   datasource:
     url: jdbc:postgresql://localhost:5433/TaskManagementSystem
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+

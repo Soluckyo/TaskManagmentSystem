@@ -13,8 +13,6 @@ import org.lib.taskmanagementsystem.entity.Status;
 @NoArgsConstructor
 public class TaskDTO {
 
-    private Long id;
-
     private String title;
 
     private String body;
