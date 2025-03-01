@@ -1,6 +1,8 @@
 package org.lib.taskmanagementsystem.api;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Optional;
 
+@Tag(name = "Admin_controller")
 @RestController
 @RequestMapping("/api/v1/admin/")
 @NoArgsConstructor
@@ -31,12 +34,19 @@ public class AdminController {
 
     AdminService adminService;
 
+    @Operation(
+            summary = "Получение всех задач",
+            description = "Получает из базы все задачи и отдает в виде List<Task>, ничего не принимает"
+    )
     @GetMapping("/")
     public ResponseEntity<List<Task>> getAllTasks() {
-        adminService.getAllTasks();
         return ResponseEntity.status(HttpStatus.OK).body(adminService.getAllTasks());
     }
 
+    @Operation(
+            summary = "Добавление новой задачи",
+            description = "Принимает сущность TaskDTO и сохраняет в базе"
+    )
     @PostMapping("/add_task")
     public ResponseEntity<String> addTask(@RequestBody TaskDTO taskDto) {
         Task task = new Task();
@@ -50,6 +60,10 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Задача успешно добавлена");
     }
 
+    @Operation(
+            summary = "Обновление задачи",
+            description = "Принимает taskId и сущность TaskDTO, обновляет поля и сохраняет в базе"
+    )
     @PutMapping("/update/{taskId}")
     public ResponseEntity<String> updateTask(@PathVariable Long taskId, @RequestBody TaskDTO taskDto) {
 
@@ -67,12 +81,19 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body("Задача успешно обновлена");
     }
 
+    @Operation(
+            summary = "Удаление задачи",
+            description = "Удаляет задачу по Id"
+    )
     @DeleteMapping("/delete/{taskId}")
     public ResponseEntity<String> deleteTask(@PathVariable Long taskId) {
         adminService.deleteTask(taskId);
         return ResponseEntity.status(HttpStatus.OK).body("Задача успешно удалена");
     }
-
+    @Operation(
+            summary = "Назначение исполнителя задачи",
+            description = "Принимает TaskAssignDTO и назначает пользователя исполнителем задачи "
+    )
     @PutMapping("/assign")
     public ResponseEntity<String> assignTaskToUser(@RequestBody TaskAssignDTO taskAssignDTO) {
         Optional<Task> taskOpt = Optional.ofNullable(adminService.findTaskById(taskAssignDTO.getTaskId()));
@@ -89,6 +110,10 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body("Исполнитель задачи успешно назначен");
     }
 
+    @Operation(
+            summary = "Добавление комментария",
+            description = "Принимает taskId из адреса и comment из тела запроса и добавляет комментарий к задаче"
+    )
     @PutMapping("/add_comment/{taskId}")
     public ResponseEntity<String> addComment(@PathVariable Long taskId,@RequestBody String comment) {
         try {
