@@ -18,7 +18,4 @@ public class RegistrationUserDTO {
 
     @Schema(description = "пароль", example = "password")
     private String password;
-
-    @Schema(description = "Роль пользователя")
-    private Role role;
 }

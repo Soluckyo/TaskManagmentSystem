@@ -1,49 +1,67 @@
 package org.lib.taskmanagementsystem.jwt;
 
-
-import ch.qos.logback.core.util.StringUtil;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import org.lib.taskmanagementsystem.entity.Role;
+import org.lib.taskmanagementsystem.security.CustomUserDetails;
+import org.lib.taskmanagementsystem.security.CustomUserService;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
-public class JwtFilter extends GenericFilterBean {
+public class JwtFilter extends OncePerRequestFilter {
 
-    private static final String AUTHORIZATION = "Authorization";
-
-    private final JwtProvider jwtProvider;
+    private final JwtUtils jwtUtils;
+    private final CustomUserService customUserService;
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
-            throws IOException, ServletException {
-        final String token = getTokenFromRequest((HttpServletRequest) request);
-        if(token != null && jwtProvider.validateAccessToken(token)) {
-            final Claims claims = jwtProvider.getAccessClaims(token);
-            final JwtAuthentication jwtInfoToken = JwtUtils.generate(claims);
-            jwtInfoToken.setAuthenticated(true);
-            SecurityContextHolder.getContext().setAuthentication(jwtInfoToken);
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+
+        String token = getTokenFromRequest(request);
+        if (token != null){
+            if(jwtUtils.validateJwtToken(token)) {
+                setCustomUserDetailsToSecurityContextHolder(token);
+            }else{
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired JWT token");
+                return;
+            }
         }
         filterChain.doFilter(request, response);
     }
 
-    private static String getTokenFromRequest(HttpServletRequest request) {
-        final String bearer = request.getHeader(AUTHORIZATION);
-            if(StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")) {
-                return bearer.substring(7);
-            }
+    private void setCustomUserDetailsToSecurityContextHolder(String token) {
+        String email = jwtUtils.getEmailFromToken(token);
+        Role role = jwtUtils.getRoleFromToken(token);
+        CustomUserDetails customUserDetails = customUserService.loadUserByUsername(email);
+
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(customUserDetails,null, authorities);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private String getTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
         return null;
     }
 }

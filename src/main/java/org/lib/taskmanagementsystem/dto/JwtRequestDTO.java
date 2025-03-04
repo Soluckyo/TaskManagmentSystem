@@ -1,13 +1,13 @@
-package org.lib.taskmanagementsystem.jwt;
+package org.lib.taskmanagementsystem.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
-@Getter
+@Data
 @Schema(description = "JWT запрос")
-public class JwtRequest {
+public class JwtRequestDTO {
 
     @Schema(description = "Почта", example = "user@gmail.com")
     private String email;

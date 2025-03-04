@@ -3,14 +3,10 @@ package org.lib.taskmanagementsystem.api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.lib.taskmanagementsystem.entity.Status;
 import org.lib.taskmanagementsystem.entity.User;
-import org.lib.taskmanagementsystem.service.AdminService;
 import org.lib.taskmanagementsystem.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,7 +20,7 @@ import java.nio.file.AccessDeniedException;
 
 @Tag(name = "User_controller")
 @RestController
-@RequestMapping("/api/v1/user/")
+@RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
 public class UserController {
 

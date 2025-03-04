@@ -4,8 +4,6 @@ package org.lib.taskmanagementsystem.api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.lib.taskmanagementsystem.dto.TaskAssignDTO;
 import org.lib.taskmanagementsystem.dto.TaskDTO;
@@ -28,7 +26,7 @@ import java.util.Optional;
 
 @Tag(name = "Admin_controller")
 @RestController
-@RequestMapping("/api/v1/admin/")
+@RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 public class AdminController {
 

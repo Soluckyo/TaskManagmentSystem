@@ -3,6 +3,7 @@ package org.lib.taskmanagementsystem.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.lib.taskmanagementsystem.entity.Task;
 import org.lib.taskmanagementsystem.entity.User;
 import org.lib.taskmanagementsystem.repository.TaskRepo;
@@ -14,15 +15,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class AdminService {
 
-    @Autowired
-    private TaskRepo taskRepo;
+    private final TaskRepo taskRepo;
 
-    @Autowired
-    private UserRepo userRepo;
+    private final UserRepo userRepo;
 
     public List<Task> getAllTasks() {
         return taskRepo.findAll();

@@ -1,17 +1,15 @@
-package org.lib.taskmanagementsystem.jwt;
+package org.lib.taskmanagementsystem.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @Schema(description = "JWT ответ")
-public class JwtResponce {
-    private final String type = "Bearer";
-
+public class JwtResponseDTO{
     @Schema(description = "Токен доступа")
     private String accessToken;
 

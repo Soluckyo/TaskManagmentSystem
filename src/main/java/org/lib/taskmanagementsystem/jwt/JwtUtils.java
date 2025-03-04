@@ -1,28 +1,116 @@
 package org.lib.taskmanagementsystem.jwt;
-
 import io.jsonwebtoken.Claims;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import lombok.extern.slf4j.Slf4j;
+import org.lib.taskmanagementsystem.dto.JwtResponseDTO;
 import org.lib.taskmanagementsystem.entity.Role;
+import org.lib.taskmanagementsystem.entity.User;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
+@Service
 public class JwtUtils {
-    public static JwtAuthentication generate(Claims claims) {
-        final JwtAuthentication jwtInfoToken = new JwtAuthentication();
-        jwtInfoToken.setRoles(getRoles(claims));
-        jwtInfoToken.setEmail(claims.getSubject());
-        jwtInfoToken.setPassword(claims.get("password", String.class));
-        return jwtInfoToken;
+
+    private static final String SECRET = "qBTmv4oXFFR2GwjexDJ4t6fsIUIUhhXqlktXjXdkcyygs8nPVEwMfo29VDRRepYDVV5IkIxBMzr7OEHXEHd37w==";
+
+    //генерация аутентификационного токена(складываем токены в dto, чтобы потом отдать)
+    public JwtResponseDTO generateAuthToken(User user) {
+        JwtResponseDTO jwtResponseDTO = new JwtResponseDTO();
+        jwtResponseDTO.setAccessToken(generateJwtToken(user));
+        jwtResponseDTO.setRefreshToken(generateRefreshToken(user));
+        return jwtResponseDTO;
     }
 
-    private static Set<Role> getRoles(Claims claims) {
-        final List<String> roles = claims.get("roles", List.class);
-        return roles.stream()
-                .map(Role::valueOf)
-                .collect(Collectors.toSet());
+    //обновление jwt токена с помощью refresh токена
+    public JwtResponseDTO refreshBaseToken(User user, String refreshToken) {
+        JwtResponseDTO jwtResponseDTO = new JwtResponseDTO();
+        jwtResponseDTO.setAccessToken(generateJwtToken(user));
+        jwtResponseDTO.setRefreshToken(refreshToken);
+        return jwtResponseDTO;
+    }
+
+    //проверка на валидность(правильный ли токен)
+    public boolean validateJwtToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSignInKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return true;
+        }catch (ExpiredJwtException expEx) {
+            log.error("Token expired", expEx);
+            return false;
+        } catch (UnsupportedJwtException unsEx) {
+            log.error("Unsupported jwt", unsEx);
+            return false;
+        } catch (MalformedJwtException mjEx) {
+            log.error("Malformed jwt", mjEx);
+            return false;
+        } catch (SignatureException sEx) {
+            log.error("Invalid signature", sEx);
+            return false;
+        } catch (Exception e) {
+            log.error("invalid token", e);
+            return false;
+        }
+    }
+
+
+    //генерация jwt токена
+    public String generateJwtToken(User user) {
+        Date date = Date.from(LocalDateTime.now().plusMinutes(1).atZone(ZoneId.systemDefault()).toInstant());
+        Role role = user.getRole();
+        return Jwts.builder()
+                .setSubject(user.getEmail())
+                .claim("role", role.name())
+                .setExpiration(date)
+                .signWith(getSignInKey())
+                .compact();
+    }
+
+    //генерация refresh токена
+    public String generateRefreshToken(User user) {
+        Date date = Date.from(LocalDateTime.now().plusDays(10).atZone(ZoneId.systemDefault()).toInstant());
+        return Jwts.builder()
+                .setSubject(user.getEmail())
+                .setExpiration(date)
+                .signWith(getSignInKey())
+                .compact();
+    }
+
+    //расшифровка секрета
+    public SecretKey getSignInKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET));
+    }
+
+    //получения почты из токена
+    public String getEmailFromToken(String token) {
+        return getClaimsFromToken(token).getSubject();
+    }
+
+    //получение роли из токена
+    public Role getRoleFromToken(String token) {
+        return Role.valueOf(getClaimsFromToken(token).get("role", String.class));
+    }
+
+    //получение claims
+    private Claims getClaimsFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSignInKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }
