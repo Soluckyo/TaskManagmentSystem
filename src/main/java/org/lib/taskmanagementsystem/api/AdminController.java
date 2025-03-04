@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Optional;
 
 @Tag(name = "Admin_controller")
@@ -41,11 +42,11 @@ public class AdminController {
     )
     @GetMapping("/")
     public ResponseEntity<Page<Task>> getAllTasks(
-            @RequestParam(defaultValue = "0") int page, // Номер страницы
-            @RequestParam(defaultValue = "3") int size // Размер страницы
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size); // Создаем объект Pageable
-        Page<Task> tasksPage = adminService.getAllTasks(pageable); // Получаем страницу задач
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Task> tasksPage = adminService.getAllTasks(pageable);
         return ResponseEntity.status(HttpStatus.OK).body(tasksPage);
     }
 
