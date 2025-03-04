@@ -10,6 +10,9 @@ import org.lib.taskmanagementsystem.dto.TaskDTO;
 import org.lib.taskmanagementsystem.entity.Task;
 import org.lib.taskmanagementsystem.entity.User;
 import org.lib.taskmanagementsystem.service.AdminService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,9 +22,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Optional;
 
 @Tag(name = "Admin_controller")
@@ -37,8 +40,13 @@ public class AdminController {
             description = "Получает из базы все задачи и отдает в виде List<Task>, ничего не принимает"
     )
     @GetMapping("/")
-    public ResponseEntity<List<Task>> getAllTasks() {
-        return ResponseEntity.status(HttpStatus.OK).body(adminService.getAllTasks());
+    public ResponseEntity<Page<Task>> getAllTasks(
+            @RequestParam(defaultValue = "0") int page, // Номер страницы
+            @RequestParam(defaultValue = "3") int size // Размер страницы
+    ) {
+        Pageable pageable = PageRequest.of(page, size); // Создаем объект Pageable
+        Page<Task> tasksPage = adminService.getAllTasks(pageable); // Получаем страницу задач
+        return ResponseEntity.status(HttpStatus.OK).body(tasksPage);
     }
 
     @Operation(
@@ -69,13 +77,8 @@ public class AdminController {
         if (task == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Задача не найдена");
         }
-        task.setTitle(taskDto.getTitle());
-        task.setBody(taskDto.getBody());
-        task.setStatus(taskDto.getStatus());
-        task.setPriority(taskDto.getPriority());
-        task.setComment(taskDto.getComment());
 
-        adminService.updateTask(taskId, task);
+        adminService.updateTask(taskId, taskDto);
         return ResponseEntity.status(HttpStatus.OK).body("Задача успешно обновлена");
     }
 
@@ -95,12 +98,12 @@ public class AdminController {
     @PutMapping("/assign")
     public ResponseEntity<String> assignTaskToUser(@RequestBody TaskAssignDTO taskAssignDTO) {
         Optional<Task> taskOpt = Optional.ofNullable(adminService.findTaskById(taskAssignDTO.getTaskId()));
-        if (taskOpt.isPresent()) {
+        if (taskOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Задача не найдена");
         }
 
         Optional<User> userOpt = Optional.ofNullable(adminService.findUserById(taskAssignDTO.getUserId()));
-        if (userOpt.isPresent()) {
+        if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Пользователь не найден");
         }
 

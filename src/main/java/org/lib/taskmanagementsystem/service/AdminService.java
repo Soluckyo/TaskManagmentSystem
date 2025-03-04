@@ -1,17 +1,16 @@
 package org.lib.taskmanagementsystem.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.lib.taskmanagementsystem.dto.TaskDTO;
 import org.lib.taskmanagementsystem.entity.Task;
 import org.lib.taskmanagementsystem.entity.User;
 import org.lib.taskmanagementsystem.repository.TaskRepo;
 import org.lib.taskmanagementsystem.repository.UserRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,8 +21,8 @@ public class AdminService {
 
     private final UserRepo userRepo;
 
-    public List<Task> getAllTasks() {
-        return taskRepo.findAll();
+    public Page<Task> getAllTasks(Pageable pageable) {
+        return taskRepo.findAll(pageable);
     }
 
     public Task findTaskById(Long id) {
@@ -34,11 +33,29 @@ public class AdminService {
         taskRepo.save(task);
     }
 
-    public void updateTask(Long taskId, Task task) {
+    public void updateTask(Long taskId, TaskDTO taskDto) {
         Task taskToUpdate = findTaskById(taskId);
-        if (taskToUpdate != null) {
-            taskRepo.saveAndFlush(task);
-        }else throw new EntityNotFoundException("Task with id: " + task.getId() + " not found");
+        if (taskToUpdate == null) {
+            throw new EntityNotFoundException("Task with id: " + taskId + " not found");
+        }
+
+        if (taskDto.getTitle() != null) {
+            taskToUpdate.setTitle(taskDto.getTitle());
+        }
+        if (taskDto.getBody() != null) {
+            taskToUpdate.setBody(taskDto.getBody());
+        }
+        if (taskDto.getStatus() != null) {
+            taskToUpdate.setStatus(taskDto.getStatus());
+        }
+        if (taskDto.getPriority() != null) {
+            taskToUpdate.setPriority(taskDto.getPriority());
+        }
+        if (taskDto.getComment() != null) {
+            taskToUpdate.setComment(taskDto.getComment());
+        }
+
+        taskRepo.save(taskToUpdate);
     }
 
     public void deleteTask(Long id) {

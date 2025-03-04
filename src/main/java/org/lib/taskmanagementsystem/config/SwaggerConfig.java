@@ -38,6 +38,5 @@ public class SwaggerConfig {
                                         .email("anton.bykov.w@yandex.ru"))
 
                 );
-
     }
 }
