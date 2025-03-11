@@ -1,9 +1,5 @@
 FROM openjdk:17-jdk-slim
 
-WORKDIR /app
-
-COPY target/project-name.jar /app/tms-backend.jar
-
-EXPOSE 8080
-
-ENTRYPOINT ["java", "-jar", "tms-backend.jar"]
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
