@@ -54,6 +54,10 @@ public class AuthController {
         }
     }
 
+    @Operation(
+            summary = "Регистрация пользователя",
+            description = "Создает нового пользователя"
+    )
     @PostMapping("/add_user")
     public ResponseEntity<String> addUser(@RequestBody RegistrationUserDTO registrationUserDTO) {
         User user = new User();
